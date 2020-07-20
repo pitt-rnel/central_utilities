@@ -1,0 +1,1 @@
+This folder must contain the cbsdkx64.lib from cbSDK, included with Central installation (e.g. C:\Program Files (x86)\Blackrock Microsystems\Cerebus Windows Suite\cbsdk\lib)
