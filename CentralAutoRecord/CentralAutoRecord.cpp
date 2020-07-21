@@ -93,6 +93,7 @@ int main(int argc, char* argv[])
 		const char* name = "none";
 		time_t t = time(0);
 		tm* now = localtime(&t);
+		double time = 0; // time elapsed in s
 
 		bool bRecording = false;
 
@@ -122,7 +123,6 @@ int main(int argc, char* argv[])
 				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 			else {
 				UINT32 cbtime = 0; // time elapsed in 30kHz samples
-				double time = 0; // time elapsed in s
 				double freq = 30000; // sample rate (30K)
 				UINT32 s_time = 5; // sleep time in ms
 				//bool bRecording = false;
