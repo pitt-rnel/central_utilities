@@ -84,9 +84,6 @@
   <ItemGroup>
     <ClCompile Include="CentralAutoRecord.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="cbhwlib.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
