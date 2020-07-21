@@ -12,7 +12,7 @@ const char* help_text =
 "This program takes the following command line arguments:\n"
 "- cbSDK Instrument number (default: 0)\n"
 "- subject ID (default: \"Test\")\n"
-"- duration (seconds, default: 5, 0 to stop current recording, -1 to start without timing)\n"
+"- duration (seconds, default: 5, 0 to stop current recording, -1 to start without timing, -2 to fill in subject and path info without starting or stopping recording)\n"
 "- path to folder (default: \"C:\\CentralRecordings\")\n";
 
 int main(int argc, char* argv[])
@@ -117,67 +117,70 @@ int main(int argc, char* argv[])
 				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-			// start recording
-			printf("Starting recording, %d seconds\n", duration);
-			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 1, cbFILECFG_OPT_NONE); 
-			if (cbRes != CBSDKRESULT_SUCCESS)
-				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
-			else {
-				UINT32 cbtime = 0; // time elapsed in 30kHz samples
-				double freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
-				UINT32 s_time = 5; // sleep time in ms
-				UINT32 t_start = 0; // start time in 30K samples
+			if (duration > -2) // duration == -2 means fill in info and exit
+			{
+				// start recording
+				printf("Starting recording, %d seconds\n", duration);
+				cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 1, cbFILECFG_OPT_NONE);
+				if (cbRes != CBSDKRESULT_SUCCESS)
+					printf("cbSdkSetFileConfig Error: %d\n", cbRes);
+				else {
+					UINT32 cbtime = 0; // time elapsed in 30kHz samples
+					double freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
+					UINT32 s_time = 5; // sleep time in ms
+					UINT32 t_start = 0; // start time in 30K samples
 
-				// wait for recording to start
-				int count = 0;
-				do {
-					count++;
-					cbRes = cbSdkGetFileConfig(cbInst, NULL, NULL, &bRecording); // determine if recording started
-					if (cbRes != CBSDKRESULT_SUCCESS) {
-						printf("cbSdkGetFileConfig Error: %d\n", cbRes);
-						time = duration; // abort recording
-						break;
+					// wait for recording to start
+					int count = 0;
+					do {
+						count++;
+						cbRes = cbSdkGetFileConfig(cbInst, NULL, NULL, &bRecording); // determine if recording started
+						if (cbRes != CBSDKRESULT_SUCCESS) {
+							printf("cbSdkGetFileConfig Error: %d\n", cbRes);
+							time = duration; // abort recording
+							break;
+						}
+
+						cbRes = cbSdkGetTime(cbInst, &t_start); // get start time (valid if recording started)
+						if (cbRes != CBSDKRESULT_SUCCESS) {
+							printf("cbSdkGetTime Error: %d\n", cbRes);
+							time = duration; // abort recording
+							break;
+						}
+
+						if (count > 500) {
+							printf("Recording failed to start\n");
+							time = duration; // abort recording
+							break;
+						}
+
+						std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
+					} while (!bRecording);
+
+					if (bRecording)
+						printf("Recording started at t0 = %d\n", t_start);
+
+					if (duration < 0) // start without stopping
+						bRecording = false;
+
+					// record timer
+					while (bRecording && time < duration) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
+						cbRes = cbSdkGetTime(cbInst, &cbtime);
+						if (cbRes != CBSDKRESULT_SUCCESS) {
+							printf("cbSdkGetTime Error: %d\n", cbRes);
+							break;
+						}
+						else {
+							time = double(cbtime - t_start) / freq;
+							if ((duration - time) * 1000 < s_time) // decrease sleep rate at end of recording
+								s_time = 1;
+						}
 					}
 
-					cbRes = cbSdkGetTime(cbInst, &t_start); // get start time (valid if recording started)
-					if (cbRes != CBSDKRESULT_SUCCESS) {
-						printf("cbSdkGetTime Error: %d\n", cbRes);
-						time = duration; // abort recording
-						break;
-					}
-
-					if (count > 500) {
-						printf("Recording failed to start\n");
-						time = duration; // abort recording
-						break;
-					}
-
-					std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
-				} while (!bRecording);
-
-				if (bRecording)
-					printf("Recording started at t0 = %d\n", t_start);
-
-				if (duration < 0) // start without stopping
-					bRecording = false;
-
-				// record timer
-				while (bRecording && time < duration) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
-					cbRes = cbSdkGetTime(cbInst, &cbtime);
-					if (cbRes != CBSDKRESULT_SUCCESS) {
-						printf("cbSdkGetTime Error: %d\n", cbRes);
-						break;
-					}
-					else {
-						time = double(cbtime - t_start) / freq;
-						if ((duration - time) * 1000 < s_time) // decrease sleep rate at end of recording
-							s_time = 1;
-					}
-				}
-
-			}
-		}
+				} // end successful file config (start recording)
+			} // end if duration > -2
+		} // end duration != 0
 
 		if (bRecording) {
 			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_NONE); // stop recording
