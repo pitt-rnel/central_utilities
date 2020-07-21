@@ -12,8 +12,13 @@ const char* help_text =
 "This program takes the following command line arguments:\n"
 "- cbSDK Instrument number (default: 0)\n"
 "- subject ID (default: \"Test\")\n"
-"- duration (seconds, default: 5, 0 to stop current recording, -1 to start without timing, -2 to fill in subject and path info without starting or stopping recording)\n"
-"- path to folder (default: \"C:\\CentralRecordings\")\n";
+"- duration in seconds. 0 to stop current recording, -1 to start without timing, -2 to fill in subject and path info without starting or stopping recording. (default: 5)\n"
+"- path to folder (default: \"C:\\CentralRecordings\")\n"
+"- subject first name (default: \"None\")\n"
+"- subject last name (default: \"None\")\n"
+"- subject DOB month (default: Today's month)\n"
+"- subject DOB day (default: Today's date)\n"
+"- subject DOB year (default: Today's year)\n";
 
 int main(int argc, char* argv[])
 {
@@ -24,7 +29,7 @@ int main(int argc, char* argv[])
 
 		UINT32 cbInst = 0;
 		if (argc > 1) { // cbInst or help request
-			if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-help") == 0 || strcmp(argv[1], "help") == 0 || strcmp(argv[1], "?") == 0 || strcmp(argv[1], "/?") == 0) {
+			if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-help") == 0 || strcmp(argv[1], "help") == 0 || strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--h") == 0 || strcmp(argv[1], "?") == 0 || strcmp(argv[1], "/?") == 0) {
 				printf(help_text);
 				return 0;
 			}
@@ -48,6 +53,38 @@ int main(int argc, char* argv[])
 			filepath = argv[4];
 		else
 			filepath = default_filepath;
+
+		char default_firstname[] = "none";
+		char default_lastname[] = "none";
+		char* firstname;
+		char* lastname;
+		if (argc > 5)
+			firstname = argv[5];
+		else
+			firstname = default_firstname;
+		if (argc > 6)
+			lastname = argv[6];
+		else
+			lastname = default_lastname;
+
+		UINT32 DOBMonth;
+		UINT32 DOBDay;
+		UINT32 DOBYear;
+		time_t t = time(0);
+		tm* now = localtime(&t);
+		if (argc > 7)
+			DOBMonth = atoi(argv[7]);
+		else
+			DOBMonth = (UINT32)now->tm_mon + 1;
+		if (argc > 8)
+			DOBDay = atoi(argv[8]);
+		else
+			DOBDay = (UINT32)now->tm_mday;
+		if (argc > 9)
+			DOBYear = atoi(argv[9]);
+		else
+			DOBYear = (UINT32)now->tm_year + 1900;
+
 
 		cbSdkResult cbRes;
 
@@ -83,11 +120,7 @@ int main(int argc, char* argv[])
 
 		printf("path: %s\n", cpath);
 
-		const char* name = "none";
-		time_t t = time(0);
-		tm* now = localtime(&t);
 		double time = 0; // time elapsed in s
-
 		bool bRecording = false;
 
 		if (duration == 0) //stop recording in progress
@@ -106,13 +139,13 @@ int main(int argc, char* argv[])
 				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 			
 			//set subjID/date
-			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); 
+			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, firstname, lastname, DOBMonth, DOBDay, DOBYear); 
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 			//set subjID/date if ignored first time
-			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); 
+			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, firstname, lastname, DOBMonth, DOBDay, DOBYear);
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
