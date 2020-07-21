@@ -1,17 +1,12 @@
 // Central Auto Threshold
 
 #include <iostream>
-
-//#ifndef _WIN32_WINNT    // Allow use of features specific to Windows XP or later.
-//#define _WIN32_WINNT 0x0501   // Change this to the appropriate value to target other versions of Windows.
-//#endif
-#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
-#include <Windows.h>
-
 #include "cbsdk.h"
 #include "cbhwlib.h"
 #include <cmath>
 #include <algorithm>
+#include<thread>
+#include<chrono>
 
 const char* help_text =
 "Central Auto Threshold\n"
@@ -150,11 +145,11 @@ int main(int argc, char* argv[])
 
 
 			bActive = 0;
-			UINT32 sleep_dur = 200;
+			UINT32 sleep_dur = 200; // sleep duration in ms
 			bool enough_samples = false;
 			UINT32 samples_collected = 0;
 			while (!enough_samples) { 
-				Sleep(sleep_dur);
+				std::this_thread::sleep_for(std::chrono::milliseconds(sleep_dur));
 
 				// determine if buffer has enough samples
 				cbSdkResult cbRes = cbSdkInitTrialData(cbInst, bActive, NULL, &trial, NULL, NULL);
@@ -167,7 +162,7 @@ int main(int argc, char* argv[])
 				int chans_with_enough_samples = 0;
 				samples_collected = trial.num_samples[0];
 				for (int i = 0; i < trial.count; i++) {
-					samples_collected = min(samples_collected, trial.num_samples[i]);
+					samples_collected = std::min(samples_collected, trial.num_samples[i]);
 					if (trial.num_samples[i] > total_samples)
 						chans_with_enough_samples++;
 				}

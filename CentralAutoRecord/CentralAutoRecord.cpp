@@ -1,16 +1,9 @@
 // Central Auto Record
 
-//#define _HAS_STD_BYTE 0 // Fixes Windows.h issue with C++17 standard
 #include <filesystem> // requires C++17
-
 #include <iostream>
-
-//#ifndef _WIN32_WINNT    // Allow use of features specific to Windows XP or later.
-//#define _WIN32_WINNT 0x0501   // Change this to the appropriate value to target other versions of Windows.
-//#endif
-#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
-#include <Windows.h>
-
+#include <thread>
+#include <chrono>
 #include "cbsdk.h"
 #include "cbhwlib.h"
 
@@ -100,32 +93,39 @@ int main(int argc, char* argv[])
 		if (duration == 0) //stop recording in progress
 			bRecording = true;
 		else {
-
-			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_OPEN); // open window
+			
+			// open window
+			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_OPEN);
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
-			Sleep(100);
-			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_NONE); // set path
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			
+			// set path
+			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_NONE);
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
-			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); //set subjID/date
+			
+			//set subjID/date
+			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); 
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
-			Sleep(100);
-			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); //set subjID/date if ignored first time
-			if (cbRes != CBSDKRESULT_SUCCESS)
-				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
-			Sleep(100);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+			//set subjID/date if ignored first time
+			cbRes = cbSdkSetPatientInfo(cbInst, subjectID, name, name, (UINT32)now->tm_mon + 1, (UINT32)now->tm_mday, (UINT32)now->tm_year + 1900); 
+			if (cbRes != CBSDKRESULT_SUCCESS)
+				printf("cbSdkSetPatientInfo Error: %d\n", cbRes);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+			// start recording
 			printf("Starting recording, %d seconds\n", duration);
-			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 1, cbFILECFG_OPT_NONE); // start recording
+			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 1, cbFILECFG_OPT_NONE); 
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 			else {
 				UINT32 cbtime = 0; // time elapsed in 30kHz samples
-				double freq = 30000; // sample rate (30K)
+				double freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
 				UINT32 s_time = 5; // sleep time in ms
-				//bool bRecording = false;
 				UINT32 t_start = 0; // start time in 30K samples
 
 				// wait for recording to start
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					Sleep(s_time);
+					std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
 				} while (!bRecording);
 
 				if (bRecording)
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 
 				// record timer
 				while (bRecording && time < duration) {
-					Sleep(s_time);
+					std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
 					cbRes = cbSdkGetTime(cbInst, &cbtime);
 					if (cbRes != CBSDKRESULT_SUCCESS) {
 						printf("cbSdkGetTime Error: %d\n", cbRes);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("Error: Failed to stop recording, cbRes = %d\n", cbRes);
 			printf("Finished recording, duration = %f\n", time);
-			Sleep(3000);
+			std::this_thread::sleep_for(std::chrono::seconds(3));
 		}
 
 		if (duration >= 0) { // close window unless we're only starting a recording
