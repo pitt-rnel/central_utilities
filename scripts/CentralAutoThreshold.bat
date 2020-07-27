@@ -10,5 +10,5 @@ SET absFlag=0
 SET bin=..\bin
 
 @echo on
-::Run Central Auto Settings
+::Run Central Auto Threshold
 %bin%\CentralAutoThreshold.exe %cbInst% %threshold% %absFlag%

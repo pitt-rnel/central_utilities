@@ -9,5 +9,5 @@ SET enableFlag=1
 SET bin=..\bin
 
 @echo on
-::Run Central Auto Record
+::Run Central Auto Raw
 %bin%\CentralAutoRaw.exe %cbInst% %enableFlag%
