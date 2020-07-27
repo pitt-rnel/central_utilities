@@ -1,4 +1,4 @@
-:: Script to run Central recording
+:: Script to load Central settings
 @echo off
 
 :: Set Input Values

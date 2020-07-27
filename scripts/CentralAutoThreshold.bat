@@ -1,4 +1,4 @@
-:: Script to run Central recording
+:: Script to threshold electrodes in Central
 @echo off
 
 :: Set Input Values
