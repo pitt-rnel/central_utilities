@@ -16,7 +16,7 @@ SET LAST=%5
 :: duration = -2 means fill in info w/out recording. Set first/last names to none
 SET DURATION=-2
 
-SET BR_DATA_DIR=C:\git\climber\data\BlackrockData
+SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
 
 :: generate datestamp, will set DOB to current day
 for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"

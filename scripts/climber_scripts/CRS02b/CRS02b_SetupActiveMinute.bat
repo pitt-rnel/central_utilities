@@ -5,8 +5,8 @@ set SUBJECT_ID=CRS02b
 :: Set pedestal ID and cbInst ID params for 2 pedestals
 set PED1=A
 set PED2=P
-set CB1=0
-set CB2=1
+set CB1=1
+set CB2=2
 set FIRST="active_minute"
 set LAST="none"
 

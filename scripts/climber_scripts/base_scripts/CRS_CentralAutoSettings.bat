@@ -14,7 +14,7 @@ SET SUBJECT_ID=%3
 SET PEDESTAL=%4
 SET SUFFIX=%5
 
-SET BR_DATA_DIR=C:\git\climber\data\BlackrockData
+SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
 SET EXT=.ccf
 SET SUBJ_DATA_DIR=%BR_DATA_DIR%\%SUBJECT_ID%\CentralSettings
 
