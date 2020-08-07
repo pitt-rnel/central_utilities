@@ -3,7 +3,7 @@
 
 :: Set subject and suffix parameters
 set SUBJECT_ID=CRS02b
-set SUFFIX=_cereE
+set SUFFIX=_cereE*
 :: Set pedestal ID and cbInst ID params for 2 pedestals
 set PED1=A
 set PED2=P
