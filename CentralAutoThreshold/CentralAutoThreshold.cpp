@@ -65,12 +65,12 @@ int main(int argc, char* argv[])
 
 		if (absFlag == 1) {// apply absolute threshold
 
-			int count = 0;
+			int chan_count = 0;
 			for (int chan = 0; chan < cbMAXCHANS; chan++) { 
 				cbPKT_CHANINFO* chaninfo = &ccf.data.isChan[chan];
 				UINT32 chancaps = chaninfo->chancaps;
 				if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_CONNECTED && chancaps & cbCHAN_ISOLATED && chancaps & cbCHAN_AINP) { // need to verify all these flags are correct. I think cbCHAN_ISOLATED distinguished front end channels from non-front end channels
-					count++;
+					chan_count++;
 					// convert threshold to INT32 digital value
 					INT32 digThresh = (INT32) round( ( (threshold - chaninfo->physcalin.anamin) / 
 						(chaninfo->physcalin.anamax - chaninfo->physcalin.anamin) ) 
@@ -84,19 +84,23 @@ int main(int argc, char* argv[])
 		} // end absolute threshold
 		else if (absFlag == 0) { // apply RMS threshold
 
-			// enable 30k data with spike filter
+			// enable 30k spike filtered data
 			cbSdkCCF ccf2;
 			memcpy(&ccf2, &ccf, sizeof(ccf)); // partial deep copy of ccf
 			memcpy(&ccf2.data, &ccf.data, sizeof(ccf.data));
-			// enable raw data using ccf2
-			int count = 0;
-			for (int chan = 0; chan < cbMAXCHANS; chan++) { // TODO: Option to pick channels or at least ensure these are valid front end channels
+			// enable 30k data using ccf2
+			int chan_count = 0;
+			for (int chan = 0; chan < cbMAXCHANS; chan++) { // TODO: Option to pick channels
 				memcpy(&ccf2.data.isChan[chan], &ccf.data.isChan[chan], sizeof(cbPKT_CHANINFO));
 				UINT32 chancaps = ccf2.data.isChan[chan].chancaps;
 				if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_CONNECTED && chancaps & cbCHAN_ISOLATED && chancaps & cbCHAN_AINP) { // need to verify all these flags are correct. I think cbCHAN_ISOLATED distinguished front end channels from non-front end channels
-					count++;
+					chan_count++;
 					ccf2.data.isChan[chan].smpgroup = 5;
 					ccf2.data.isChan[chan].smpfilter = ccf2.data.isChan[chan].spkfilter;
+				}
+				else if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_AINP) {// all other ainps
+					ccf2.data.isChan[chan].smpgroup = 0; // disable
+					ccf2.data.isChan[chan].smpfilter = 0;
 				} // if chancaps
 			} // end for chans
 
@@ -104,7 +108,7 @@ int main(int argc, char* argv[])
 			cbFILTDESC filtdesc;
 			cbSdkGetFilterDesc(cbInst, 1, ccf2.data.isChan[0].smpfilter, &filtdesc);
 
-			printf("Enabled 30kHz %s data on %d chans\n", filtdesc.label, count);
+			printf("Enabled 30kHz %s data on %d chans\n", filtdesc.label, chan_count);
 
 			cbRes = cbSdkWriteCCF(cbInst, &ccf2, NULL);
 			if (cbRes == CBSDKRESULT_SUCCESS)
@@ -161,7 +165,7 @@ int main(int argc, char* argv[])
 
 				int chans_with_enough_samples = 0;
 				samples_collected = trial.num_samples[0];
-				for (int i = 0; i < trial.count; i++) {
+				for (int i = 0; i < chan_count; i++) {
 					samples_collected = std::min(samples_collected, trial.num_samples[i]);
 					if (trial.num_samples[i] > total_samples)
 						chans_with_enough_samples++;
@@ -169,24 +173,23 @@ int main(int argc, char* argv[])
 				enough_samples = (samples_collected > total_samples);
 
 				if (!enough_samples)
-					printf("Collecting trial data: %d chans, %d samples, %d rate\n", trial.count, samples_collected, trial.sample_rates[0]);
+					printf("Collecting trial data: %d chans, %d samples, %d rate\n", chan_count, samples_collected, trial.sample_rates[0]);
 
 				if (trial.num_samples[0] > 0.95 * total_samples)
 					sleep_dur = 10; // reduce sleep duration to 10 ms when we only have 10% of samples left
 			}
 
-			cbRes = cbSdkGetTrialData(0, bActive, NULL, &trial, NULL, NULL);
+			cbRes = cbSdkGetTrialData(cbInst, bActive, NULL, &trial, NULL, NULL);
 			if (cbRes == CBSDKRESULT_SUCCESS)
-				printf("Collected trial data: %d chans, %d samples, %d rate\n", trial.count, samples_collected, trial.sample_rates[0]);
+				printf("Collected trial data: %d chans, %d samples, %d rate\n", chan_count, samples_collected, trial.sample_rates[0]);
 			else
 			{
 				printf("Error: Failed to get trial data, cbRes = %d\n", cbRes);
 				return cbRes;
 			}
-			
 
 			// THRESHOLD
-			for (int iChan = 0; iChan < trial.count; iChan++) {
+			for (int iChan = 0; iChan < chan_count; iChan++) {
 				cbSCALING* scale = &ccf.data.isChan[trial.chan[iChan]-1].physcalin;
 
 				double* dSamps = (double*)trial.samples[iChan];
