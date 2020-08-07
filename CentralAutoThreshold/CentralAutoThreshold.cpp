@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 		} // end absolute threshold
 		else if (absFlag == 0) { // apply RMS threshold
 
-			// enable raw data
+			// enable 30k data with spike filter
 			cbSdkCCF ccf2;
 			memcpy(&ccf2, &ccf, sizeof(ccf)); // partial deep copy of ccf
 			memcpy(&ccf2.data, &ccf.data, sizeof(ccf.data));
