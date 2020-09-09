@@ -12,6 +12,7 @@ SET SUBJECT_ID=%2
 SET PEDESTAL=%3
 SET FIRST=%4
 SET LAST=%5
+SET SUBFOLDER=%6
 
 :: duration = -2 means fill in info w/out recording. Set first/last names to none
 SET DURATION=-2
@@ -23,7 +24,7 @@ for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "d
 set "YY=%dt:~2,2%" & set "YYYY=%dt:~0,4%" & set "MM=%dt:~4,2%" & set "DD=%dt:~6,2%"
 
 :: generate filename
-SET DATAPATH="%BR_DATA_DIR%\%SUBJECT_ID%\Baseline%PEDESTAL%"
+SET DATAPATH="%BR_DATA_DIR%\%SUBJECT_ID%\Baseline%PEDESTAL%\%SUBFOLDER%"
 
 :: bin dir
 SET bin=%~dp0\..\..\..\bin
