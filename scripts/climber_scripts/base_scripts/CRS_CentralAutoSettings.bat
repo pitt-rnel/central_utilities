@@ -20,7 +20,7 @@ SET SUBJ_DATA_DIR=%BR_DATA_DIR%\%SUBJECT_ID%\CentralSettings
 
 IF %writeFlag% == 0 (
     ::echo %SUBJ_DATA_DIR%\*_%PEDESTAL%%SUFFIX%%EXT%
-    for /f %%i in ('dir /b/a-d/od/t:c %SUBJ_DATA_DIR%\*_%PEDESTAL%%SUFFIX%%EXT%') do set LASTCCF=%%i
+    for /f %%i in ('dir /b/a-d/od/t:c %SUBJ_DATA_DIR%\*_%PEDESTAL%%SUFFIX%*%EXT%') do set LASTCCF=%%i
     ::echo LASTCCF=!LASTCCF!
     SET filename="%SUBJ_DATA_DIR%\!LASTCCF!"
     echo reading !filename!
