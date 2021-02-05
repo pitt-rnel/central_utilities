@@ -10,7 +10,7 @@ set PED2=P
 set CB1=1
 set CB2=2
 
-:: Toggle load or save
+:: Toggle load (0) or save (1) or load template (-1)
 set SAVE_FLAG=1
 
 :: First pedestal

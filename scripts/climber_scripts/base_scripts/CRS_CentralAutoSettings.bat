@@ -1,6 +1,6 @@
 :: Script to save Central Settings
 :: First input is cbInst
-:: Second input is writeFlag (0 load, 1 save)
+:: Second input is writeFlag (0 load last, 1 save, -1 load template)
 :: Third input is subject id
 :: Fourth input is pedestal ID (e.g. A or P)
 :: Fifth input is optional file suffix (e.g. _cereE or _stim)
@@ -19,14 +19,19 @@ SET EXT=.ccf
 SET SUBJ_DATA_DIR=%BR_DATA_DIR%\%SUBJECT_ID%\CentralSettings
 
 IF %writeFlag% == 0 (
-    ::echo %SUBJ_DATA_DIR%\*_%PEDESTAL%%SUFFIX%%EXT%
+    :: load last
     for /f %%i in ('dir /b/a-d/od/t:c %SUBJ_DATA_DIR%\*_%PEDESTAL%%SUFFIX%*%EXT%') do set LASTCCF=%%i
     ::echo LASTCCF=!LASTCCF!
     SET filename="%SUBJ_DATA_DIR%\!LASTCCF!"
     echo reading !filename!
 )
+IF %writeFlag% == -1 (
+    :: load template
+    SET filename="!SUBJ_DATA_DIR!\Template_!PEDESTAL!!SUFFIX!!EXT!"
+    echo reading !filename!
+)
 IF  %writeFlag% == 1 (
-    :: generate datestamp
+    :: write file with generated datestamp
     for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
     set "YY=!dt:~2,2!" & set "YYYY=!dt:~0,4!" & set "MM=!dt:~4,2!" & set "DD=!dt:~6,2!"
     set datestamp=!YYYY!_!MM!_!DD!
