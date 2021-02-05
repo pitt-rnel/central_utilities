@@ -11,7 +11,7 @@ set CB1=1
 set CB2=2
 
 :: Toggle load (0) or save (1) or load template (-1)
-set SAVE_FLAG=0
+set SAVE_FLAG=-1
 
 :: First pedestal
 echo call 1 %PED1% %CB1%

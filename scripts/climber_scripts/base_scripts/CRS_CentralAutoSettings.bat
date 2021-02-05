@@ -25,11 +25,6 @@ IF %writeFlag% == 0 (
     SET filename="%SUBJ_DATA_DIR%\!LASTCCF!"
     echo reading !filename!
 )
-IF %writeFlag% == -1 (
-    :: load template
-    SET filename="!SUBJ_DATA_DIR!\Template_!PEDESTAL!!SUFFIX!!EXT!"
-    echo reading !filename!
-)
 IF  %writeFlag% == 1 (
     :: write file with generated datestamp
     for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
@@ -39,6 +34,12 @@ IF  %writeFlag% == 1 (
     :: generate filename
     SET filename="!SUBJ_DATA_DIR!\!datestamp!_!PEDESTAL!!SUFFIX!!EXT!"
     echo Saving !filename!
+)
+IF %writeFlag% == -1 (
+    :: load template
+    SET filename="!SUBJ_DATA_DIR!\Template_!PEDESTAL!!SUFFIX!!EXT!"
+    echo reading !filename!
+    SET writeFlag=0
 )
 
 :: bin dir
