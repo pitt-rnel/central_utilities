@@ -161,8 +161,6 @@ typedef unsigned short  UINT16;
 typedef signed int      INT32;
 typedef unsigned int    UINT32;
 
-typedef UINT8           DLEN;
-
 #ifndef WIN32
 # if __WORDSIZE == 64
 typedef long int                 INT64;
@@ -256,8 +254,6 @@ typedef unsigned int UINT;
 #define cbMAXCHANS            (cbNUM_ANALOG_CHANS +  cbNUM_ANALOGOUT_CHANS + cbNUM_DIGIN_CHANS + cbNUM_SERIAL_CHANS + cbNUM_DIGOUT_CHANS)
 
 #define cbFIRST_FE_CHAN       0                                          // 0   First Front end channel
-//#define cbFIRST_ANAIN_CHAN    cbNUM_FE_CHANS                             // 256 First Analog Input channel
-//#define cbFIRST_ANAOUT_CHAN   (cbFIRST_ANAIN_CHAN + cbNUM_ANAIN_CHANS)   // 288 First Analog Output channel
 
 // Bank definitions - NOTE: If any of the channel types have more than cbCHAN_PER_BANK channels, the banks must be increased accordingly
 #define cbCHAN_PER_BANK       32                                         // number of 32 channel banks == 1024
@@ -1825,8 +1821,7 @@ cbRESULT cbSetRefElecFilter(UINT32  proc,           // which NSP processor?
 #endif
 
 // NTrode Information Packets
-#define cbNTRODEINFO_FS_PEAK           0         // Ntrode peak feature space
-#define cbNTRODEINFO_FS_VALLEY         1         // Ntrode valley feature space
+enum cbNTRODEINFO_FS_MODE { cbNTRODEINFO_FS_PEAK, cbNTRODEINFO_FS_VALLEY, cbNTRODEINFO_FS_AMPLITUDE, cbNTRODEINFO_FS_COUNT };
 #define cbPKTTYPE_REPNTRODEINFO      0x27        /* NSP->PC response...*/
 #define cbPKTTYPE_SETNTRODEINFO      0xA7        /* PC->NSP request */
 #define cbPKTDLEN_NTRODEINFO         ((sizeof(cbPKT_NTRODEINFO) / 4) - cbPKT_HEADER_32SIZE)
@@ -2127,14 +2122,15 @@ cbRESULT cbGetChannelSelection(cbPKT_UNIT_SELECTION * pPktUnitSel, UINT32 nInsta
 
 
 // file config options
-#define cbFILECFG_OPT_NONE         0x00000000  // Launch File dialog, set file info, start or stop recording
-#define cbFILECFG_OPT_KEEPALIVE    0x00000001  // Keep-alive message
-#define cbFILECFG_OPT_REC          0x00000002  // Recording is in progress
-#define cbFILECFG_OPT_STOP         0x00000003  // Recording stopped
-#define cbFILECFG_OPT_NMREC        0x00000004  // NeuroMotive recording status
-#define cbFILECFG_OPT_CLOSE        0x00000005  // Close file application
-#define cbFILECFG_OPT_SYNCH        0x00000006  // Recording datetime
-#define cbFILECFG_OPT_OPEN         0x00000007  // Launch File dialog, do not set or do anything
+#define cbFILECFG_OPT_NONE          0x00000000  // Launch File dialog, set file info, start or stop recording
+#define cbFILECFG_OPT_KEEPALIVE     0x00000001  // Keep-alive message
+#define cbFILECFG_OPT_REC           0x00000002  // Recording is in progress
+#define cbFILECFG_OPT_STOP          0x00000003  // Recording stopped
+#define cbFILECFG_OPT_NMREC         0x00000004  // NeuroMotive recording status
+#define cbFILECFG_OPT_CLOSE         0x00000005  // Close file application
+#define cbFILECFG_OPT_SYNCH         0x00000006  // Recording datetime
+#define cbFILECFG_OPT_OPEN          0x00000007  // Launch File dialog, do not set or do anything
+#define cbFILECFG_OPT_TIMEOUT       0x00000008  // Keep alive not received so it timed out
 
 // file save configuration packet
 #define cbPKTTYPE_REPFILECFG 0x61
