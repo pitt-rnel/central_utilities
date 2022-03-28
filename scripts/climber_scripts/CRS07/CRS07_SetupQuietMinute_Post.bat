@@ -1,7 +1,7 @@
 @echo off
 
 :: Set subject
-set SUBJECT_ID=CRS02b
+set SUBJECT_ID=CRS07
 :: Set pedestal ID and cbInst ID params for 2 pedestals
 set PED1=A
 set PED2=P
@@ -9,7 +9,7 @@ set CB1=1
 set CB2=2
 set FIRST="quiet_minute"
 set LAST="none"
-set SUBFOLDER=QuietMinute
+set SUBFOLDER=QuietMinute_Post
 
 :: Enable raw
 call ..\base_scripts\CRS_CentralAutoRaw.bat %CB1% 1

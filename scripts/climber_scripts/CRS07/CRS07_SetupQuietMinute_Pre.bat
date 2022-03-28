@@ -9,7 +9,7 @@ set CB1=1
 set CB2=2
 set FIRST="quiet_minute"
 set LAST="none"
-set SUBFOLDER=QuietMinute
+set SUBFOLDER=QuietMinute_Pre
 
 :: Enable raw
 call ..\base_scripts\CRS_CentralAutoRaw.bat %CB1% 1
