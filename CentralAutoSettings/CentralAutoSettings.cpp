@@ -42,7 +42,6 @@ int main(int argc, char* argv[])
 			writeFlag = atoi(argv[3]);
 
 		cbSdkResult cbRes;
-		cbSdkCCF ccf;
 
 		// open SDK
 		cbRes = cbSdkOpen(cbInst);
@@ -54,16 +53,17 @@ int main(int argc, char* argv[])
 		}
 
 		// load or write CCF
-
+		cbSdkCCF* ccf = new cbSdkCCF();
 		if (writeFlag == 0) { // load mode
 
 			// read CCF from filename
 			printf("Reading CCF from file\n");
-			cbRes = cbSdkReadCCF(cbInst, &ccf, filepath, true, true);
+			cbRes = cbSdkReadCCF(cbInst, ccf, filepath, true, true);
 			if (cbRes == CBSDKRESULT_SUCCESS)
-				printf("Successfully loaded CCF struct with version %d \n", ccf.ccfver);
+				printf("Successfully loaded CCF struct with version %d \n", ccf->ccfver);
 			else {
 				printf("Error: Failed to read CCF, cbRes = %d\n", cbRes);
+				delete ccf;
 				return cbRes;
 			}
 
@@ -72,17 +72,19 @@ int main(int argc, char* argv[])
 
 			// read CCF from NSP
 			printf("Reading CCF from NSP\n");
-			cbRes = cbSdkReadCCF(cbInst, &ccf, NULL, true);
+			cbRes = cbSdkReadCCF(cbInst, ccf, NULL, true);
 			if (cbRes == CBSDKRESULT_SUCCESS)
-				printf("Successfully read CCF struct from NSP with version %d \n", ccf.ccfver);
+				printf("Successfully read CCF struct from NSP with version %d \n", ccf->ccfver);
 			else {
 				printf("Error: Failed to read CCF, cbRes = %d\n", cbRes);
+				delete ccf;
 				return cbRes;
 			}
 
 			// write CCF to filename
 			printf("Writing CCF to file\n");
-			cbRes = cbSdkWriteCCF(cbInst, &ccf, filepath); 
+			cbRes = cbSdkWriteCCF(cbInst, ccf, filepath); 
+			delete ccf;
 			if (cbRes == CBSDKRESULT_SUCCESS)
 				printf("Successfully saved CCF struct\n");
 			else {
