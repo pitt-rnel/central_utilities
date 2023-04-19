@@ -1,7 +1,6 @@
-/* =STS=> cbsdk.h[4901].aa20   submit   SMID:22 */
 //////////////////////////////////////////////////////////////////////////////
 //
-// (c) Copyright 2010 - 2011 Blackrock Microsystems
+// (c) Copyright 2010 - 2022 Blackrock Microsystems, LLC
 //
 // $Workfile: cbsdk.h $
 // $Archive: /Cerebus/Human/WindowsApps/cbmex/cbsdk.h $
@@ -120,6 +119,8 @@ typedef enum _cbSdkConnectionType
     CBSDKCONNECTION_DEFAULT = 0, ///< Try Central then UDP
     CBSDKCONNECTION_CENTRAL,     ///< Use Central
     CBSDKCONNECTION_UDP,         ///< Use UDP
+    CBSDKCONNECTION_GEMININSP,   ///< Connect to Gemini NSP
+    CBSDKCONNECTION_GEMINIHUB,   ///< Connect to Gemini Hub
     CBSDKCONNECTION_CLOSED,      ///< Closed
     CBSDKCONNECTION_COUNT ///< Allways the last value (Unknown)
 } cbSdkConnectionType;
@@ -131,6 +132,8 @@ typedef enum _cbSdkInstrumentType
     CBSDKINSTRUMENT_NPLAY,         ///< Local nPlay
     CBSDKINSTRUMENT_LOCALNSP,      ///< Local NSP
     CBSDKINSTRUMENT_REMOTENPLAY,   ///< Remote nPlay
+    CBSDKINSTRUMENT_GEMININSP,     ///< Gemini NSP
+    CBSDKINSTRUMENT_GEMINIHUB,     ///< Gemini Hub
     CBSDKINSTRUMENT_COUNT ///< Allways the last value (Invalid)
 } cbSdkInstrumentType;
 
@@ -245,11 +248,11 @@ typedef void (* cbSdkCallback)(UINT32 nInstance, const cbSdkPktType type, const 
 /// Trial spike events
 typedef struct _cbSdkTrialEvent
 {
-    UINT16 count; ///< Number of valid channels in this trial (up to cbNUM_ANALOG_CHANS+2)
-    UINT16 chan[cbNUM_ANALOG_CHANS + 2]; ///< channel numbers (1-based)
-    UINT32 num_samples[cbNUM_ANALOG_CHANS + 2][cbMAXUNITS + 1]; ///< number of samples
-    void * timestamps[cbNUM_ANALOG_CHANS + 2][cbMAXUNITS + 1];   ///< Buffer to hold time stamps
-    void * waveforms[cbNUM_ANALOG_CHANS + 2]; ///< Buffer to hold waveforms or digital values
+    UINT16 count; ///< Number of valid channels in this trial (up to cbMAXCHANS)
+    UINT16 chan[cbMAXCHANS]; ///< channel numbers (1-based)
+    UINT32 num_samples[cbMAXCHANS][cbMAXUNITS + 1]; ///< number of samples
+    void * timestamps[cbMAXCHANS][cbMAXUNITS + 1];   ///< Buffer to hold time stamps
+    void * waveforms[cbMAXCHANS]; ///< Buffer to hold waveforms or digital values
 } cbSdkTrialEvent;
 
 /// Connection information
@@ -262,12 +265,14 @@ typedef struct _cbSdkConnection
         nRecBufSize = (4096 * 2048); // 8MB default needed for best performance
         szInIP = "";
         szOutIP = "";
+        nRange = 0;
     }
     int nInPort;  ///< Client port number
     int nOutPort; ///< Instrument port number
     int nRecBufSize; ///< Receive buffer size (0 to ignore altogether)
     LPCSTR szInIP;  ///< Client IPv4 address
     LPCSTR szOutIP; ///< Instrument IPv4 address
+    int nRange;     ///< Range of IP addresses to try to open
 } cbSdkConnection;
 
 /// Trial continuous data
@@ -383,6 +388,7 @@ typedef enum _cbSdkExtCmdType
     cbSdkExtCmd_INPUT,		// Input to RPC command
     cbSdkExtCmd_END_PLUGIN, // Signal to end plugin
     cbSdkExtCmd_NSP_REBOOT, // Restart the NSP
+    cbSdkExtCmd_PLUGINFO,   // Get plugin info
 } cbSdkExtCmdType;
 
 /// Extension command
@@ -412,7 +418,7 @@ CBSDKAPI    cbSdkResult cbSdkGetType(UINT32 nInstance, cbSdkConnectionType * con
 CBSDKAPI    cbSdkResult cbSdkClose(UINT32 nInstance);
 
 /*! Get the instrument sample clock time */
-CBSDKAPI    cbSdkResult cbSdkGetTime(UINT32 nInstance, UINT32 * cbtime);
+CBSDKAPI    cbSdkResult cbSdkGetTime(UINT32 nInstance, PROCTIME * cbtime);
 
 /*! Get direct access to internal spike cache shared memory */
 CBSDKAPI    cbSdkResult cbSdkGetSpkCache(UINT32 nInstance, UINT16 channel, cbSPKCACHE **cache);

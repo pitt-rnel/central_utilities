@@ -158,10 +158,10 @@ int main(int argc, char* argv[])
 				if (cbRes != CBSDKRESULT_SUCCESS)
 					printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 				else {
-					UINT32 cbtime = 0; // time elapsed in 30kHz samples
+					PROCTIME cbtime = 0; // time elapsed in 30kHz samples
 					double freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
 					UINT32 s_time = 5; // sleep time in ms
-					UINT32 t_start = 0; // start time in 30K samples
+					PROCTIME t_start = 0; // start time in 30K samples
 
 					// wait for recording to start
 					int count = 0;
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 					} while (!bRecording);
 
 					if (bRecording)
-						printf("Recording started at t0 = %d\n", t_start);
+						printf("Recording started at t0 = %I64i\n", t_start);
 
 					if (duration < 0) // start without stopping
 						bRecording = false;

@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 
 
 		cbSdkResult cbRes;
-		cbSdkCCF ccf;
+		cbSdkCCF* ccf = new cbSdkCCF();
 
 		// open SDK
 		cbRes = cbSdkOpen(cbInst);
@@ -50,16 +50,18 @@ int main(int argc, char* argv[])
 			printf("Connected to Central\n");
 		else {
 			printf("Error: Failed to open cbSdk, cbRes = %d\n", cbRes);
+			delete ccf;
 			return cbRes;
 		}
 
 		// read CCF from NSP
 		printf("Reading CCF from NSP\n");
-		cbRes = cbSdkReadCCF(cbInst, &ccf, NULL, true);
+		cbRes = cbSdkReadCCF(cbInst, ccf, NULL, true);
 		if (cbRes == CBSDKRESULT_SUCCESS)
-			printf("Successfully read CCF struct with version %d \n", ccf.ccfver);
+			printf("Successfully read CCF struct with version %d \n", ccf->ccfver);
 		else {
 			printf("Error: Failed to read CCF, cbRes = %d\n", cbRes);
+			delete ccf;
 			return cbRes;
 		}
 
@@ -67,7 +69,7 @@ int main(int argc, char* argv[])
 
 			int chan_count = 0;
 			for (int chan = 0; chan < cbMAXCHANS; chan++) { 
-				cbPKT_CHANINFO* chaninfo = &ccf.data.isChan[chan];
+				cbPKT_CHANINFO* chaninfo = &ccf->data.isChan[chan];
 				UINT32 chancaps = chaninfo->chancaps;
 				if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_CONNECTED && chancaps & cbCHAN_ISOLATED && chancaps & cbCHAN_AINP) { // need to verify all these flags are correct. I think cbCHAN_ISOLATED distinguished front end channels from non-front end channels
 					chan_count++;
@@ -85,36 +87,38 @@ int main(int argc, char* argv[])
 		else if (absFlag == 0) { // apply RMS threshold
 
 			// enable 30k spike filtered data
-			cbSdkCCF ccf2;
-			memcpy(&ccf2, &ccf, sizeof(ccf)); // partial deep copy of ccf
-			memcpy(&ccf2.data, &ccf.data, sizeof(ccf.data));
+			cbSdkCCF* ccf2 = new cbSdkCCF();
+			memcpy(ccf2, ccf, sizeof(&ccf)); // partial deep copy of ccf
+			memcpy(&ccf2->data, &ccf->data, sizeof(ccf->data));
 			// enable 30k data using ccf2
 			int chan_count = 0;
 			for (int chan = 0; chan < cbMAXCHANS; chan++) { // TODO: Option to pick channels
-				memcpy(&ccf2.data.isChan[chan], &ccf.data.isChan[chan], sizeof(cbPKT_CHANINFO));
-				UINT32 chancaps = ccf2.data.isChan[chan].chancaps;
+				memcpy(&ccf2->data.isChan[chan], &ccf->data.isChan[chan], sizeof(cbPKT_CHANINFO));
+				UINT32 chancaps = ccf->data.isChan[chan].chancaps;
 				if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_CONNECTED && chancaps & cbCHAN_ISOLATED && chancaps & cbCHAN_AINP) { // need to verify all these flags are correct. I think cbCHAN_ISOLATED distinguished front end channels from non-front end channels
 					chan_count++;
-					ccf2.data.isChan[chan].smpgroup = 5;
-					ccf2.data.isChan[chan].smpfilter = ccf2.data.isChan[chan].spkfilter;
+					ccf2->data.isChan[chan].smpgroup = 5;
+					ccf2->data.isChan[chan].smpfilter = ccf->data.isChan[chan].spkfilter;
 				}
 				else if (chancaps & cbCHAN_EXISTS && chancaps & cbCHAN_AINP) {// all other ainps
-					ccf2.data.isChan[chan].smpgroup = 0; // disable
-					ccf2.data.isChan[chan].smpfilter = 0;
+					ccf2->data.isChan[chan].smpgroup = 0; // disable
+					ccf2->data.isChan[chan].smpfilter = 0;
 				} // if chancaps
 			} // end for chans
 
 			// get filter label
 			cbFILTDESC filtdesc;
-			cbSdkGetFilterDesc(cbInst, 1, ccf2.data.isChan[0].smpfilter, &filtdesc);
+			cbSdkGetFilterDesc(cbInst, 1, ccf2->data.isChan[0].smpfilter, &filtdesc);
 
 			printf("Enabled 30kHz %s data on %d chans\n", filtdesc.label, chan_count);
 
-			cbRes = cbSdkWriteCCF(cbInst, &ccf2, NULL);
+			cbRes = cbSdkWriteCCF(cbInst, ccf2, NULL);
+			delete(ccf2);
 			if (cbRes == CBSDKRESULT_SUCCESS)
 				printf("Wrote CCF struct\n\n");
 			else {
 				printf("Error: Failed to write CCF, cbRes = %d\n", cbRes);
+				delete ccf;
 				return cbRes;
 			}
 
@@ -136,6 +140,7 @@ int main(int argc, char* argv[])
 			if (cbRes != CBSDKRESULT_SUCCESS)
 			{
 				printf("Error: Failed to set trial config, cbRes = %d\n", cbRes);
+				delete ccf;
 				return cbRes;
 			}
 
@@ -160,6 +165,7 @@ int main(int argc, char* argv[])
 				if (cbRes != CBSDKRESULT_SUCCESS)
 				{
 					printf("Error: Failed to init trial data, cbRes = %d\n", cbRes);
+					delete ccf;
 					return cbRes;
 				}
 
@@ -185,12 +191,13 @@ int main(int argc, char* argv[])
 			else
 			{
 				printf("Error: Failed to get trial data, cbRes = %d\n", cbRes);
+				delete ccf;
 				return cbRes;
 			}
 
 			// THRESHOLD
 			for (int iChan = 0; iChan < chan_count; iChan++) {
-				cbSCALING* scale = &ccf.data.isChan[trial.chan[iChan]-1].physcalin;
+				cbSCALING* scale = &ccf->data.isChan[trial.chan[iChan]-1].physcalin;
 
 				double* dSamps = (double*)trial.samples[iChan];
 				double msq[100];
@@ -223,7 +230,7 @@ int main(int argc, char* argv[])
 					* ((double)scale->digmax - (double)scale->digmin) + (double)scale->digmin;
 				
 				// set threshold in CCF struct
-				ccf.data.isChan[trial.chan[iChan]-1].spkthrlevel = (INT32) round(digThresh);
+				ccf->data.isChan[trial.chan[iChan]-1].spkthrlevel = (INT32) round(digThresh);
 
 		} // end channel threshold loop
 
@@ -240,7 +247,8 @@ int main(int argc, char* argv[])
 
 		// write CCF to NSP
 		printf("Writing CCF to NSP\n");
-		cbRes = cbSdkWriteCCF(cbInst, &ccf, NULL);
+		cbRes = cbSdkWriteCCF(cbInst, ccf, NULL);
+		delete ccf;
 		if (cbRes == CBSDKRESULT_SUCCESS)
 			printf("Successfully loaded CCF struct\n");
 		else {
