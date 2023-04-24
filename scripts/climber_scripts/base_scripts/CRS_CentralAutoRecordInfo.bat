@@ -5,6 +5,8 @@
 :: Forth input is "First Name"
 :: Fifth Input is "Last Name"
 @echo off
+setlocal ENABLEDELAYEDEXPANSION
+setlocal ENABLEEXTENSIONS
 
 :: Set Input Values
 SET cbInst=%1
@@ -17,7 +19,11 @@ SET SUBFOLDER=%6
 :: duration = -2 means fill in info w/out recording. Set first/last names to none
 SET DURATION=-2
 
-SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+IF DEFINED CLIMBER (
+    SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
+) ELSE (
+    SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+)
 
 :: generate datestamp, will set DOB to current day
 for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
