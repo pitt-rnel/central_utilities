@@ -71,7 +71,34 @@ int main(int argc, char* argv[])
 			return cbRes;
 		}
 
-		cbSdkCCF* ccf = new cbSdkCCF();
+		cbSdkVersion cbVer = cbSdkVersion();
+		cbRes = cbSdkGetVersion(cbInst, &cbVer);
+		if (cbRes == CBSDKRESULT_SUCCESS)
+			std::cout << "cbSDK Version " << cbVer.major << "." << cbVer.minor <<
+			", protocol " << cbVer.majorp << "." << cbVer.minorp <<
+			", NSP version " << cbVer.nspmajor << "." << cbVer.nspminor << std::endl;
+		else {
+			printf("Error: Failed to check cbSdk Version, cbRes = %d\n", cbRes);
+			return cbRes;
+		}
+
+		cbSdkConnectionType conType;
+		cbSdkInstrumentType instType;
+		cbRes = cbSdkGetType(cbInst, &conType, &instType);
+		if (cbRes == CBSDKRESULT_SUCCESS) {
+			if (instType == CBSDKINSTRUMENT_LOCALNSP)
+				printf("Connected to NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMININSP)
+				printf("Connected to Gemini NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMINIHUB)
+				printf("Connected to Gemini Hub\n");
+		}
+		else {
+			printf("Error: Failed to check instrument type, cbRes = %d\n", cbRes);
+			return cbRes;
+		}
+
+		cbSdkCCF* ccf = new cbSdkCCF;
 		cbRes = cbSdkReadCCF(cbInst, ccf,NULL,false);
 		if (cbRes == CBSDKRESULT_SUCCESS)
 			printf("Read CCF struct\n");
