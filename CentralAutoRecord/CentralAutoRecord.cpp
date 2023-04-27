@@ -96,6 +96,40 @@ int main(int argc, char* argv[])
 			return cbRes;
 		}
 
+		cbSdkVersion cbVer = cbSdkVersion();
+		cbRes = cbSdkGetVersion(cbInst, &cbVer);
+		if (cbRes == CBSDKRESULT_SUCCESS)
+			std::cout << "cbSDK Version " << cbVer.major << "." << cbVer.minor <<
+			", protocol " << cbVer.majorp << "." << cbVer.minorp <<
+			", NSP version " << cbVer.nspmajor << "." << cbVer.nspminor << std::endl;
+		else {
+			printf("Error: Failed to check cbSdk Version, cbRes = %d\n", cbRes);
+			return cbRes;
+		}
+
+		cbSdkConnectionType conType;
+		cbSdkInstrumentType instType;
+		cbRes = cbSdkGetType(cbInst, &conType, &instType);
+		if (cbRes == CBSDKRESULT_SUCCESS) {
+			if (instType == CBSDKINSTRUMENT_LOCALNSP)
+				printf("Connected to NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMININSP)
+				printf("Connected to Gemini NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMINIHUB)
+				printf("Connected to Gemini Hub\n");
+		}
+		else {
+			printf("Error: Failed to check instrument type, cbRes = %d\n", cbRes);
+			return cbRes;
+		}
+
+		double clock_freq;
+		if (
+			(instType == CBSDKINSTRUMENT_GEMININSP || instType == CBSDKINSTRUMENT_GEMINIHUB) &&
+			(cbVer.majorp > 4 || (cbVer.majorp == 4 && cbVer.minorp >= 1)))
+			clock_freq = 1.0e9; // updated timestamps - nanosecond precision
+		else
+			clock_freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
 
 		std::filesystem::path spath(filepath);
 		std::string fullpath;
@@ -159,7 +193,7 @@ int main(int argc, char* argv[])
 					printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 				else {
 					PROCTIME cbtime = 0; // time elapsed in 30kHz samples
-					double freq = cbSdk_TICKS_PER_SECOND; // sample rate (30K)
+					
 					UINT32 s_time = 5; // sleep time in ms
 					PROCTIME t_start = 0; // start time in 30K samples
 
@@ -205,7 +239,7 @@ int main(int argc, char* argv[])
 							break;
 						}
 						else {
-							time = double(cbtime - t_start) / freq;
+							time = double(cbtime - t_start) / clock_freq;
 							if ((duration - time) * 1000 < s_time) // decrease sleep rate at end of recording
 								s_time = 1;
 						}

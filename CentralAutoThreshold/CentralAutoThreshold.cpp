@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 
 
 		cbSdkResult cbRes;
-		cbSdkCCF* ccf = new cbSdkCCF();
+		cbSdkCCF* ccf = new cbSdkCCF;
 
 		// open SDK
 		cbRes = cbSdkOpen(cbInst);
@@ -51,6 +51,33 @@ int main(int argc, char* argv[])
 		else {
 			printf("Error: Failed to open cbSdk, cbRes = %d\n", cbRes);
 			delete ccf;
+			return cbRes;
+		}
+
+		cbSdkVersion cbVer = cbSdkVersion();
+		cbRes = cbSdkGetVersion(cbInst, &cbVer);
+		if (cbRes == CBSDKRESULT_SUCCESS)
+			std::cout << "cbSDK Version " << cbVer.major << "." << cbVer.minor <<
+			", protocol " << cbVer.majorp << "." << cbVer.minorp <<
+			", NSP version " << cbVer.nspmajor << "." << cbVer.nspminor << std::endl;
+		else {
+			printf("Error: Failed to check cbSdk Version, cbRes = %d\n", cbRes);
+			return cbRes;
+		}
+
+		cbSdkConnectionType conType;
+		cbSdkInstrumentType instType;
+		cbRes = cbSdkGetType(cbInst, &conType, &instType);
+		if (cbRes == CBSDKRESULT_SUCCESS) {
+			if (instType == CBSDKINSTRUMENT_LOCALNSP)
+				printf("Connected to NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMININSP)
+				printf("Connected to Gemini NSP\n");
+			else if (instType == CBSDKINSTRUMENT_GEMINIHUB)
+				printf("Connected to Gemini Hub\n");
+		}
+		else {
+			printf("Error: Failed to check instrument type, cbRes = %d\n", cbRes);
 			return cbRes;
 		}
 
@@ -87,7 +114,7 @@ int main(int argc, char* argv[])
 		else if (absFlag == 0) { // apply RMS threshold
 
 			// enable 30k spike filtered data
-			cbSdkCCF* ccf2 = new cbSdkCCF();
+			cbSdkCCF* ccf2 = new cbSdkCCF;
 			memcpy(ccf2, ccf, sizeof(&ccf)); // partial deep copy of ccf
 			memcpy(&ccf2->data, &ccf->data, sizeof(ccf->data));
 			// enable 30k data using ccf2
