@@ -7,6 +7,10 @@
 #include "cbsdk.h"
 #include "cbhwlib.h"
 
+#if cbVERSION_MAJOR < 4
+typedef UINT32 PROCTIME;
+#endif
+
 const char* help_text =
 "Central Auto Record\n"
 "This program takes the following command line arguments:\n"
@@ -43,9 +47,9 @@ int main(int argc, char* argv[])
 		else
 			subjectID = default_subject;
 
-		int duration = 5;
+		double duration = 5.0;
 		if (argc > 3)
-			duration = atoi(argv[3]);
+			duration = atof(argv[3]);
 
 		char *filepath;
 		char default_filepath[] = "C:\\CentralRecordings";
@@ -84,7 +88,6 @@ int main(int argc, char* argv[])
 			DOBYear = atoi(argv[9]);
 		else
 			DOBYear = (UINT32)now->tm_year + 1900;
-
 
 		cbSdkResult cbRes;
 
@@ -154,10 +157,10 @@ int main(int argc, char* argv[])
 
 		printf("path: %s\n", cpath);
 
-		double time = 0; // time elapsed in s
+		double time_elapsed = 0.0; // time elapsed in s
 		bool bRecording = false;
 
-		if (duration == 0) //stop recording in progress
+		if (duration == 0.0) //stop recording in progress
 			bRecording = true;
 		else {
 			
@@ -187,14 +190,14 @@ int main(int argc, char* argv[])
 			if (duration > -2) // duration == -2 means fill in info and exit
 			{
 				// start recording
-				printf("Starting recording, %d seconds\n", duration);
+				printf("Starting recording, %.2f seconds\n", duration);
 				cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 1, cbFILECFG_OPT_NONE);
 				if (cbRes != CBSDKRESULT_SUCCESS)
 					printf("cbSdkSetFileConfig Error: %d\n", cbRes);
 				else {
 					PROCTIME cbtime = 0; // time elapsed in 30kHz samples
 					
-					UINT32 s_time = 5; // sleep time in ms
+					UINT32 s_time = 100; // sleep time in ms
 					PROCTIME t_start = 0; // start time in 30K samples
 
 					// wait for recording to start
@@ -204,20 +207,20 @@ int main(int argc, char* argv[])
 						cbRes = cbSdkGetFileConfig(cbInst, NULL, NULL, &bRecording); // determine if recording started
 						if (cbRes != CBSDKRESULT_SUCCESS) {
 							printf("cbSdkGetFileConfig Error: %d\n", cbRes);
-							time = duration; // abort recording
+							time_elapsed = duration; // abort recording
 							break;
 						}
 
 						cbRes = cbSdkGetTime(cbInst, &t_start); // get start time (valid if recording started)
 						if (cbRes != CBSDKRESULT_SUCCESS) {
 							printf("cbSdkGetTime Error: %d\n", cbRes);
-							time = duration; // abort recording
+							time_elapsed = duration; // abort recording
 							break;
 						}
 
 						if (count > 500) {
 							printf("Recording failed to start\n");
-							time = duration; // abort recording
+							time_elapsed = duration; // abort recording
 							break;
 						}
 
@@ -225,13 +228,18 @@ int main(int argc, char* argv[])
 					} while (!bRecording);
 
 					if (bRecording)
+#if cbVERSION_MAJOR < 4
+						printf("Recording started at t0 = %i\n", t_start);
+#else
 						printf("Recording started at t0 = %I64i\n", t_start);
+#endif
 
 					if (duration < 0) // start without stopping
 						bRecording = false;
 
 					// record timer
-					while (bRecording && time < duration) {
+					double time_remaining = duration - time_elapsed;
+					while (bRecording && time_remaining > 0) {
 						std::this_thread::sleep_for(std::chrono::milliseconds(s_time));
 						cbRes = cbSdkGetTime(cbInst, &cbtime);
 						if (cbRes != CBSDKRESULT_SUCCESS) {
@@ -239,11 +247,16 @@ int main(int argc, char* argv[])
 							break;
 						}
 						else {
-							time = double(cbtime - t_start) / clock_freq;
-							if ((duration - time) * 1000 < s_time) // decrease sleep rate at end of recording
-								s_time = 1;
+							PROCTIME samps_elapsed = cbtime - t_start;
+							time_elapsed = double(samps_elapsed) / clock_freq;
+							time_remaining = duration - time_elapsed;
+							printf("\r                                                          \r"); // clear last line
+							printf("Time Elapsed: %.2f s -- Time Remaining: %.2f s", time_elapsed, time_remaining);
+							if (time_remaining * 1000.0 < double(s_time)) // decrease sleep rate at end of recording
+								s_time = 10; // note: cbSdkGetTime can apparently return junk if this is too small
 						}
 					}
+					printf("\n");
 
 				} // end successful file config (start recording)
 			} // end if duration > -2
@@ -253,7 +266,7 @@ int main(int argc, char* argv[])
 			cbRes = cbSdkSetFileConfig(cbInst, cpath, "", 0, cbFILECFG_OPT_NONE); // stop recording
 			if (cbRes != CBSDKRESULT_SUCCESS)
 				printf("Error: Failed to stop recording, cbRes = %d\n", cbRes);
-			printf("Finished recording, duration = %f\n", time);
+			printf("Finished recording, duration = %f\n", time_elapsed);
 			std::this_thread::sleep_for(std::chrono::seconds(3));
 		}
 
