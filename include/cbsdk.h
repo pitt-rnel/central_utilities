@@ -121,6 +121,7 @@ typedef enum _cbSdkConnectionType
     CBSDKCONNECTION_UDP,         ///< Use UDP
     CBSDKCONNECTION_GEMININSP,   ///< Connect to Gemini NSP
     CBSDKCONNECTION_GEMINIHUB,   ///< Connect to Gemini Hub
+    CBSDKCONNECTION_GEMINIHUB2,  ///< Connect to a second Gemini Hub
     CBSDKCONNECTION_CLOSED,      ///< Closed
     CBSDKCONNECTION_COUNT ///< Allways the last value (Unknown)
 } cbSdkConnectionType;
