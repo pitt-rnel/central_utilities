@@ -15,11 +15,8 @@ SET SUBJECT_ID=%3
 SET PEDESTAL=%4
 SET SUFFIX=%5
 
-IF DEFINED CLIMBER (
-    SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
-) ELSE (
-    SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
-)
+
+SET BR_DATA_DIR=%DATATANK%\BlackrockData
 
 SET EXT=.ccf
 SET SUBJ_DATA_DIR=%BR_DATA_DIR%\%SUBJECT_ID%\CentralSettings

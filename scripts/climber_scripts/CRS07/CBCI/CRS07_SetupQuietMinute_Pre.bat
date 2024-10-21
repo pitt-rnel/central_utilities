@@ -3,7 +3,7 @@
 :: Set subject
 set SUBJECT_ID=CRS07
 :: Set pedestal ID and cbInst ID params for 2 pedestals
-set PED1=\
+set PED1=256
 set CB1=0
 set FIRST="quiet_minute"
 set LAST="none"
