@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 #include "cbsdk.h"
-#include "cbhwlib.h"
+#include "cbproto.h"
 
 #if cbVERSION_MAJOR < 4
 typedef UINT32 PROCTIME;

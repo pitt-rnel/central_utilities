@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "cbsdk.h"
-#include "cbhwlib.h"
+#include "cbproto.h"
 #include <cmath>
 #include <algorithm>
 #include<thread>

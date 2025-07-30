@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "cbsdk.h"
-#include "cbhwlib.h"
+#include "cbproto.h"
 
 const char* help_text =
 "Central Auto Continuous\n"
