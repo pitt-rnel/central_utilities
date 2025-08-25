@@ -4,7 +4,7 @@
 :: Third input is subject id
 :: Fourth input is pedestal ID (e.g. A or P)
 :: Fifth input is optional file suffix (e.g. _cereE or _stim)
-@echo on
+@echo off
 setlocal ENABLEDELAYEDEXPANSION
 setlocal ENABLEEXTENSIONS
 
