@@ -4,7 +4,7 @@
 :: Third input is subject id
 :: Fourth input is pedestal ID (e.g. A or P)
 :: Fifth input is optional file suffix (e.g. _cereE or _stim)
-@echo off
+@echo on
 setlocal ENABLEDELAYEDEXPANSION
 setlocal ENABLEEXTENSIONS
 
@@ -15,10 +15,14 @@ SET SUBJECT_ID=%3
 SET PEDESTAL=%4
 SET SUFFIX=%5
 
-IF DEFINED CLIMBER (
-    SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
+IF DEFINED DATATANK (
+    SET BR_DATA_DIR=%DATATANK%\BlackrockData
 ) ELSE (
-    SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+    IF DEFINED CLIMBER (
+        SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
+    ) ELSE (
+        SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+    )
 )
 
 SET EXT=.ccf

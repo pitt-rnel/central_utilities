@@ -19,10 +19,14 @@ SET SUBFOLDER=%6
 :: duration = -2 means fill in info w/out recording. Set first/last names to none
 SET DURATION=-2
 
-IF DEFINED CLIMBER (
-    SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
+IF DEFINED DATATANK (
+    SET BR_DATA_DIR=%DATATANK%\BlackrockData
 ) ELSE (
-    SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+    IF DEFINED CLIMBER (
+        SET BR_DATA_DIR=%CLIMBER%\data\BlackrockData
+    ) ELSE (
+        SET BR_DATA_DIR=D:\git\climber\data\BlackrockData
+    )
 )
 
 :: generate datestamp, will set DOB to current day
