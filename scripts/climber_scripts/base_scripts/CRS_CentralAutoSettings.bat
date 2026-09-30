@@ -37,9 +37,7 @@ IF %writeFlag% == 0 (
 )
 IF  %writeFlag% == 1 (
     :: write file with generated datestamp
-    for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-    set "YY=!dt:~2,2!" & set "YYYY=!dt:~0,4!" & set "MM=!dt:~4,2!" & set "DD=!dt:~6,2!"
-    set datestamp=!YYYY!_!MM!_!DD!
+    for /f %%i in ('powershell.exe -NoProfile -Command "Get-Date -Format yyyy_MM_dd"') do set "datestamp=%%i"
 
     :: generate filename
     SET filename="!SUBJ_DATA_DIR!\!datestamp!_!PEDESTAL!!SUFFIX!!EXT!"
